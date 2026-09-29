@@ -50,3 +50,4 @@ jobs:
 
     - name: Push Docker image (versioned)
       run: docker push "${{ steps.meta.outputs.IMAGE }}:${{ steps.meta.outputs.VERSION }}"
+      
