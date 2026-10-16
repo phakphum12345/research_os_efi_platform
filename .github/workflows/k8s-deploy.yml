@@ -1,4 +1,4 @@
-name: AI SaaS Kubernetes Deploy
+name: AI SaaS Image Build and Publish
 
 on:
   push:
