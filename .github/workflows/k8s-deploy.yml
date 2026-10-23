@@ -1,31 +1,66 @@
-name: AI SaaS Image Build and Publish
+name: Kubernetes Deploy
 
 on:
-  push:
-    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      image_ref:
+        description: "Published image with immutable commit tag, e.g. ghcr.io/owner/repo/ai-saas:sha-<40-char-commit>"
+        required: true
+        type: string
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
-  build-deploy:
+  validate:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Build Image
+      - name: Validate deployment configuration without exposing secrets
+        shell: bash
+        env:
+          K8S_HOST: ${{ secrets.K8S_HOST }}
+          K8S_USER: ${{ secrets.K8S_USER }}
+          K8S_SSH_KEY: ${{ secrets.K8S_SSH_KEY }}
+          K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
+          K8S_DEPLOYMENT: ${{ vars.K8S_DEPLOYMENT }}
+          K8S_CONTAINER_NAME: ${{ vars.K8S_CONTAINER_NAME }}
+          IMAGE_REF: ${{ inputs.image_ref }}
         run: |
-          docker build -t ghcr.io/${{ github.repository }}/ai-saas:latest .
+          set -euo pipefail
+          for name in K8S_HOST K8S_USER K8S_SSH_KEY K8S_NAMESPACE K8S_DEPLOYMENT K8S_CONTAINER_NAME IMAGE_REF; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Required deployment setting is missing: $name"
+              exit 1
+            fi
+          done
+          [[ "$K8S_NAMESPACE" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] || { echo "::error::K8S_NAMESPACE has invalid format"; exit 1; }
+          [[ "$K8S_DEPLOYMENT" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] || { echo "::error::K8S_DEPLOYMENT has invalid format"; exit 1; }
+          [[ "$K8S_CONTAINER_NAME" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] || { echo "::error::K8S_CONTAINER_NAME has invalid format"; exit 1; }
+          [[ "$IMAGE_REF" =~ ^ghcr\.io/[a-z0-9_.-]+/[a-z0-9_.-]+/ai-saas:sha-[0-9a-f]{40}$ ]] || { echo "::error::IMAGE_REF must be a GHCR image tagged with a full commit SHA"; exit 1; }
+          echo "Deployment configuration validation passed."
 
-      - name: Push Image
-        run: |
-          docker push ghcr.io/${{ github.repository }}/ai-saas:latest
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Deploy immutable image and verify rollout
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
+          K8S_DEPLOYMENT: ${{ vars.K8S_DEPLOYMENT }}
+          K8S_CONTAINER_NAME: ${{ vars.K8S_CONTAINER_NAME }}
+          IMAGE_REF: ${{ inputs.image_ref }}
+        with:
+          host: ${{ secrets.K8S_HOST }}
+          username: ${{ secrets.K8S_USER }}
+          key: ${{ secrets.K8S_SSH_KEY }}
+          envs: K8S_NAMESPACE,K8S_DEPLOYMENT,K8S_CONTAINER_NAME,IMAGE_REF
+          command_timeout: 5m
+          script: |
+            set -eu
+            kubectl -n "$K8S_NAMESPACE" set image "deployment/$K8S_DEPLOYMENT" "$K8S_CONTAINER_NAME=$IMAGE_REF"
+            kubectl -n "$K8S_NAMESPACE" rollout status "deployment/$K8S_DEPLOYMENT" --timeout=180s
+            kubectl -n "$K8S_NAMESPACE" get deployment "$K8S_DEPLOYMENT" -o wide
