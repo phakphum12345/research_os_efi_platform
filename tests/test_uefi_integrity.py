@@ -86,6 +86,18 @@ class UEFIIntegrityTests(unittest.TestCase):
                 "FAIL",
             )
 
+    def test_noncanonical_manifest_paths_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            create_installable_tree(root)
+            path = write_integrity_manifest(root, artifact_type="installable")
+            payload = json.loads(path.read_text())
+            payload["files"][0]["path"] = "./" + payload["files"][0]["path"]
+            path.write_text(json.dumps(payload))
+            result = verify_integrity_manifest(root, require_installable=True)
+            self.assertEqual(result["status"], "FAIL")
+            self.assertTrue(any("unsafe or recursive" in error for error in result["errors"]))
+
     def test_manifest_file_is_excluded_from_its_own_hash_inventory(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
