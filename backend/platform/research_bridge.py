@@ -91,7 +91,9 @@ def capability_report():
     return {
         "schema_version": "2.0",
         "bridge": "research-os-to-efi-platform",
-        "source_policy": "PROVENANCE_REQUIRED_NO_SHARED_RUNTIME_OR_DATA",
+        # Preserve the established API value for existing callers.
+        "source_policy": "PROVENANCE_REQUIRED",
+        "project_boundary": "NO_SHARED_RUNTIME_OR_DATA",
         "source_repository": RESEARCH_OS_REPO,
         "source_commit": RESEARCH_OS_COMMIT,
         "capabilities": capabilities,
