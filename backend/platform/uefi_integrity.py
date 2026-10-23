@@ -38,7 +38,19 @@ def _safe_relative_path(value: Any) -> str | None:
     path = PurePosixPath(value)
     if path.is_absolute() or any(part in ("", ".", "..") for part in path.parts):
         return None
+    # Reject non-canonical paths rather than relying on pathlib normalization.
+    if path.as_posix() != value:
+        return None
     return path.as_posix()
+
+
+def _has_symlink_component(root: Path, relative: str) -> bool:
+    current = root
+    for part in PurePosixPath(relative).parts:
+        current = current / part
+        if current.is_symlink():
+            return True
+    return False
 
 
 def _inventory(root: Path) -> list[dict[str, Any]]:
@@ -168,7 +180,7 @@ def verify_integrity_manifest(
             errors.append(f"invalid file size for {relative}")
             continue
         target = root / relative
-        if not target.is_file() or target.is_symlink():
+        if _has_symlink_component(root, relative) or not target.is_file():
             errors.append(f"missing or unsafe package file: {relative}")
             continue
         if target.stat().st_size != size:
