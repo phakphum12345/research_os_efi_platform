@@ -7,6 +7,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 MANIFEST_NAME = "EFI-INTEGRITY-MANIFEST.json"
+EXCLUDED_METADATA_FILES = {MANIFEST_NAME, "evidence-packet.json"}
 MANIFEST_SCHEMA = "1.0"
 INSTALLABLE_REQUIRED_FILES = (
     "EFI/BOOT/BOOTx64.efi",
@@ -47,7 +48,7 @@ def _inventory(root: Path) -> list[dict[str, Any]]:
             # Symlinks can escape the package root and are not accepted in a
             # portable installer integrity manifest.
             raise ValueError(f"symlink is not allowed in EFI package: {path.relative_to(root).as_posix()}")
-        if path.is_file() and path.name != MANIFEST_NAME:
+        if path.is_file() and path.name not in EXCLUDED_METADATA_FILES:
             entries.append({
                 "path": path.relative_to(root).as_posix(),
                 "size": path.stat().st_size,
@@ -151,7 +152,7 @@ def verify_integrity_manifest(
             errors.append("invalid file entry")
             continue
         relative = _safe_relative_path(item.get("path"))
-        if relative is None or relative == relative_manifest:
+        if relative is None or relative in EXCLUDED_METADATA_FILES:
             errors.append("unsafe or recursive manifest file path")
             continue
         if relative in listed:
