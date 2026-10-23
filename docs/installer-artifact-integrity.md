@@ -17,6 +17,16 @@ This gate is separate from the UEFI/OpenCore folder manifest. It verifies a down
 
 Required inputs: local artifact path, expected SHA-256, and source URL. Optional input: expected size. It streams the file in chunks, rejects missing/empty/unsupported files, checks the expected size when provided, and fails closed when the digest differs.
 
+## Command-line use
+
+Run from the repository root after obtaining the expected digest from an independent trusted source:
+
+```powershell
+python -m backend.platform.cli verify-installer .\\downloads\\InstallAssistant.pkg --sha256 <trusted-64-hex-digest> --source-url https://support.apple.com/example --expected-size <expected-bytes>
+```
+
+The command emits a JSON report and returns exit code 0 only when verification passes; otherwise it returns 1. Replace the example URL and values with the actual source and independently verified digest. Do not paste secrets into command-line arguments.
+
 ## Separate release gates
 
 1. Verify the installer checksum against an independent trusted source.
