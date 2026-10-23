@@ -13,7 +13,8 @@ class ResearchBridgeTests(unittest.TestCase):
         report = capability_report()
         self.assertEqual(report["source_repository"], RESEARCH_OS_REPO)
         self.assertEqual(report["source_commit"], RESEARCH_OS_COMMIT)
-        self.assertEqual(report["source_policy"], "PROVENANCE_REQUIRED_NO_SHARED_RUNTIME_OR_DATA")
+        self.assertEqual(report["source_policy"], "PROVENANCE_REQUIRED")
+        self.assertEqual(report["project_boundary"], "NO_SHARED_RUNTIME_OR_DATA")
         self.assertEqual(len(RESEARCH_OS_COMMIT), 40)
 
     def test_every_capability_has_complete_provenance(self):
@@ -34,7 +35,7 @@ class ResearchBridgeTests(unittest.TestCase):
 
     def test_report_does_not_offer_shared_runtime_or_data(self):
         report = capability_report()
-        self.assertIn("NO_SHARED_RUNTIME_OR_DATA", report["source_policy"])
+        self.assertEqual(report["project_boundary"], "NO_SHARED_RUNTIME_OR_DATA")
         for capability in report["capabilities"]:
             self.assertNotIn("shared service", capability["adaptation_reason"].lower())
 
