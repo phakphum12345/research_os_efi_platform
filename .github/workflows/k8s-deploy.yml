@@ -12,9 +12,12 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  deploy:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
     steps:
       - name: Validate deployment configuration without exposing secrets
         shell: bash
@@ -40,14 +43,6 @@ jobs:
           [[ "$IMAGE_REF" =~ ^ghcr\.io/phakphum12345/research_os_efi_platform/ai-saas:sha-[0-9a-f]{40}$ ]] || { echo "::error::IMAGE_REF must be this repository GHCR image tagged with a full commit SHA"; exit 1; }
           echo "Deployment configuration validation passed."
 
-  deploy:
-    if: github.ref == 'refs/heads/main'
-    needs: validate
-    runs-on: ubuntu-latest
-    environment: production
-    permissions:
-      contents: read
-    steps:
       - name: Deploy immutable image and verify rollout
         uses: appleboy/ssh-action@v1.2.0
         env:
