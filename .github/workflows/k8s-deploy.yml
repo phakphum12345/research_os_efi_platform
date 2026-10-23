@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       image_ref:
-        description: "Published image with immutable commit tag, e.g. ghcr.io/owner/repo/ai-saas:sha-<40-char-commit>"
+        description: "Published image with immutable commit tag, e.g. ghcr.io/phakphum12345/research_os_efi_platform/ai-saas:sha-<40-char-commit>"
         required: true
         type: string
 
@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   validate:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Validate deployment configuration without exposing secrets
@@ -40,6 +41,7 @@ jobs:
           echo "Deployment configuration validation passed."
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: validate
     runs-on: ubuntu-latest
     environment: production
