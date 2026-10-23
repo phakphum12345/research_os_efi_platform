@@ -25,6 +25,7 @@ from .universal.discovery.runner import provider_for
 from .universal.platforms import host_platform, normalize_platform, platform_report
 from .universal.runtime.engine import RuntimeEngine
 from .universal.runtime.evidence import write_session_evidence
+from .installer_integrity import verify_installer_artifact
 
 
 def main():
@@ -85,6 +86,11 @@ def main():
     s.add_parser("efi-knowledge")
     x = s.add_parser("validate-opencore")
     x.add_argument("efi")
+    x = s.add_parser("verify-installer")
+    x.add_argument("artifact")
+    x.add_argument("--sha256", required=True, help="Expected SHA-256 from an independent trusted source")
+    x.add_argument("--source-url", required=True, help="HTTPS source URL used to obtain the artifact")
+    x.add_argument("--expected-size", type=int, default=None)
     x = s.add_parser("plan")
     x.add_argument("profile")
     x.add_argument("--source-sha", required=True)
@@ -185,6 +191,15 @@ def main():
         print(json.dumps(knowledge_report(), indent=2))
     elif a.command == "validate-opencore":
         print(json.dumps(validate_opencore(a.efi), indent=2))
+    elif a.command == "verify-installer":
+        result = verify_installer_artifact(
+            a.artifact,
+            expected_sha256=a.sha256,
+            source_url=a.source_url,
+            expected_size=a.expected_size,
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0 if result["status"] == "PASS" else 1
     elif a.command == "pipeline":
         profile = json.loads(Path(a.profile).read_text(encoding="utf-8"))
         packet = build_evidence_packet(
