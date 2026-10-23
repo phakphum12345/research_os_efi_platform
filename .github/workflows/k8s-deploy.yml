@@ -37,7 +37,7 @@ jobs:
           [[ "$K8S_NAMESPACE" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] || { echo "::error::K8S_NAMESPACE has invalid format"; exit 1; }
           [[ "$K8S_DEPLOYMENT" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] || { echo "::error::K8S_DEPLOYMENT has invalid format"; exit 1; }
           [[ "$K8S_CONTAINER_NAME" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]] || { echo "::error::K8S_CONTAINER_NAME has invalid format"; exit 1; }
-          [[ "$IMAGE_REF" =~ ^ghcr\\.io/phakphum12345/research_os_efi_platform/ai-saas:sha-[0-9a-f]{40}$ ]] || { echo "::error::IMAGE_REF must be this repository GHCR image tagged with a full commit SHA"; exit 1; }
+          [[ "$IMAGE_REF" =~ ^ghcr\.io/phakphum12345/research_os_efi_platform/ai-saas:sha-[0-9a-f]{40}$ ]] || { echo "::error::IMAGE_REF must be this repository GHCR image tagged with a full commit SHA"; exit 1; }
           echo "Deployment configuration validation passed."
 
   deploy:
