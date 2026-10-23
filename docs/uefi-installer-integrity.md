@@ -15,7 +15,7 @@ The installable check is a structural gate, not proof that each third-party bina
 
 `backend/platform/uefi_integrity.py` provides deterministic SHA-256 inventory and verification. Each entry records a safe relative path, file size, and digest. Verification fails closed on missing files, modified bytes, size mismatch, duplicate/unsafe paths, symlinks, or unmanifested files. The manifest does not include its own hash in its file inventory.
 
-Generate the manifest only after all package files are finalized. Any subsequent package change requires regenerating the manifest and rerunning verification.
+EFI candidate generation now writes a candidate-mode manifest automatically, and OpenCore validation checks that manifest when present. Generate the manifest only after all package files are finalized. Any subsequent package change requires regenerating the manifest and rerunning verification. The installable package check remains a separate strict mode because generated research candidates intentionally may not contain bootloader binaries.
 
 ## Release acceptance gates
 
