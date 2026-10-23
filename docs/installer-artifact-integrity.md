@@ -22,7 +22,7 @@ Required inputs: local artifact path, expected SHA-256, and source URL. Optional
 Run from the repository root after obtaining the expected digest from an independent trusted source:
 
 ```powershell
-python -m backend.platform.cli verify-installer .\\downloads\\InstallAssistant.pkg --sha256 <trusted-64-hex-digest> --source-url https://support.apple.com/example --expected-size <expected-bytes>
+python -m backend.platform.cli verify-installer .\\downloads\\InstallAssistant.pkg --sha256 YOUR_TRUSTED_SHA256 --source-url https://support.apple.com/example --expected-size YOUR_EXPECTED_BYTES
 ```
 
 The command emits a JSON report and returns exit code 0 only when verification passes; otherwise it returns 1. Replace the example URL and values with the actual source and independently verified digest. Do not paste secrets into command-line arguments.
