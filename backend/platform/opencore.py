@@ -2,6 +2,8 @@ from __future__ import annotations
 import hashlib,json,plistlib
 from pathlib import Path
 from typing import Any
+
+from .uefi_integrity import MANIFEST_NAME, verify_integrity_manifest
 REQUIRED={"ACPI","Kernel","Misc","NVRAM","PlatformInfo","UEFI"}
 def sha256_file(path:Path)->str:
  h=hashlib.sha256()
@@ -30,4 +32,12 @@ def validate_opencore(efi_root:str)->dict[str,Any]:
   warnings.append("config.plist absent (expected when candidate is compatibility-blocked)")
  for p in sorted(oc.rglob("*")):
   if p.is_file() and p!=cfg and p!=report: files.append({"path":str(p),"sha256":sha256_file(p),"size":p.stat().st_size})
- return {"schema_version":"1.0","status":"PASS" if not errors else "FAIL","errors":errors,"warnings":warnings,"compatibility":compatibility,"files":files}
+ manifest_path = root / MANIFEST_NAME
+ integrity = None
+ if manifest_path.is_file():
+  integrity = verify_integrity_manifest(root)
+  if integrity["status"] != "PASS":
+   errors.extend(f"integrity: {item}" for item in integrity["errors"])
+ else:
+  warnings.append("integrity manifest absent; file integrity is not proven")
+ return {"schema_version":"1.0","status":"PASS" if not errors else "FAIL","errors":errors,"warnings":warnings,"compatibility":compatibility,"files":files,"integrity":integrity}

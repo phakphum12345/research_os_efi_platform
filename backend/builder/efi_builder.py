@@ -8,6 +8,7 @@ from typing import Any, Mapping
 from .compatibility import evaluate_hardware, result_to_dict
 from .config_gen import generate_config
 from .kext_resolver import resolve_kexts
+from backend.platform.uefi_integrity import write_integrity_manifest
 
 
 def create_structure(root: str = "EFI") -> None:
@@ -43,10 +44,12 @@ def build_efi(
         json.dump(report, handle, indent=2)
 
     if result.status == "BLOCKED" and strict:
+        integrity_path = write_integrity_manifest(root, artifact_type="candidate")
         return {
             "status": "EFI_BLOCKED",
             "compatibility": report,
             "report": report_path,
+            "integrity_manifest": str(integrity_path),
         }
 
     kexts = resolve_kexts(profile)
@@ -55,10 +58,12 @@ def build_efi(
     config_path = os.path.join(root, "OC", "config.plist")
     with open(config_path, "wb") as handle:
         plistlib.dump(config, handle, fmt=plistlib.FMT_XML, sort_keys=False)
+    integrity_path = write_integrity_manifest(root, artifact_type="candidate")
 
     return {
         "status": "EFI_CREATED",
         "kexts": kexts,
         "compatibility": report,
         "config": config_path,
+        "integrity_manifest": str(integrity_path),
     }
