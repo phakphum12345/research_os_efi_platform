@@ -180,7 +180,7 @@ class _ControlCenterPageState extends State<ControlCenterPage> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: _selectedPlatform,
+                  initialValue: _selectedPlatform,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     helperText:
