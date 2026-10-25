@@ -17,7 +17,9 @@ void main() {
       (tester) async {
     await tester.pumpWidget(const ResearchPlatformApp());
 
-    await tester.tap(find.text('Read-only discovery'));
+    await tester.ensureVisible(find.text('Read-only Discovery'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Read-only Discovery'));
     await tester.pumpAndSettle();
 
     expect(find.text('Read-only discovery'), findsWidgets);
@@ -29,7 +31,7 @@ void main() {
       (tester) async {
     await tester.pumpWidget(const ResearchPlatformApp());
 
-    await tester.tap(find.text('Platforms').first);
+    await tester.tap(find.byIcon(Icons.devices_other).first);
     await tester.pumpAndSettle();
 
     expect(find.text('Windows'), findsWidgets);
