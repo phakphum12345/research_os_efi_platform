@@ -49,10 +49,14 @@ void main() {
     expect(find.text('View Evidence'), findsOneWidget);
     expect(find.text('Installer Research'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('View Evidence'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('View Evidence'));
     await tester.pumpAndSettle();
     expect(find.text('Evidence manifest'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('Installer Research'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Installer Research'));
     await tester.pumpAndSettle();
     expect(find.text('Search compatible installers'), findsOneWidget);
@@ -61,6 +65,8 @@ void main() {
   testWidgets('discovery preview exposes an action to open Discovery', (tester) async {
     await tester.pumpWidget(const ResearchPlatformApp());
 
+    await tester.ensureVisible(find.text('Read-only Discovery'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Read-only Discovery'));
     await tester.pumpAndSettle();
 
