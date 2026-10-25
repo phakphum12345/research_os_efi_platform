@@ -26,6 +26,7 @@ from .universal.platforms import host_platform, normalize_platform, platform_rep
 from .universal.runtime.engine import RuntimeEngine
 from .universal.runtime.evidence import write_session_evidence
 from .installer_integrity import verify_installer_artifact
+from .live_discovery import collect_live_discovery, write_live_discovery
 
 
 def main():
@@ -34,6 +35,9 @@ def main():
 
     x = s.add_parser("collect")
     x.add_argument("output")
+    x = s.add_parser("live-discovery")
+    x.add_argument("output")
+    x.add_argument("--platform", default=None, choices=["windows", "linux", "macos"])
     x = s.add_parser("discover-product")
     x.add_argument("output")
     x.add_argument("--platform", default=None, choices=["windows", "linux", "macos"])
@@ -109,6 +113,11 @@ def main():
 
     if a.command == "collect":
         write_snapshot(a.output)
+    elif a.command == "live-discovery":
+        result = collect_live_discovery(a.platform)
+        write_live_discovery(result, a.output)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0 if result["overall_status"] == "DETECTED" else 0
     elif a.command == "discover-product":
         target = normalize_platform(a.platform or host_platform())
         result = discover_product(
