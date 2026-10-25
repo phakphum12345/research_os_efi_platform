@@ -42,4 +42,32 @@ void main() {
     );
     expect(futurePlatforms, findsOneWidget);
   });
+  testWidgets('quick action buttons navigate to their workspaces', (tester) async {
+    await tester.pumpWidget(const ResearchPlatformApp());
+
+    expect(find.text('Read-only Discovery'), findsOneWidget);
+    expect(find.text('View Evidence'), findsOneWidget);
+    expect(find.text('Installer Research'), findsOneWidget);
+
+    await tester.tap(find.text('View Evidence'));
+    await tester.pumpAndSettle();
+    expect(find.text('Evidence manifest'), findsOneWidget);
+
+    await tester.tap(find.text('Installer Research'));
+    await tester.pumpAndSettle();
+    expect(find.text('Search compatible installers'), findsOneWidget);
+  });
+
+  testWidgets('discovery preview exposes an action to open Discovery', (tester) async {
+    await tester.pumpWidget(const ResearchPlatformApp());
+
+    await tester.tap(find.text('Read-only Discovery'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Open Discovery'), findsOneWidget);
+    await tester.tap(find.text('Open Discovery'));
+    await tester.pumpAndSettle();
+    expect(find.text('Hardware discovery'), findsOneWidget);
+  });
+
 }
