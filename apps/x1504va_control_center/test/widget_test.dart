@@ -33,6 +33,12 @@ void main() {
 
     expect(find.text('Windows'), findsWidgets);
     expect(find.text('Linux'), findsWidgets);
-    expect(find.text('Other and future platforms'), findsOneWidget);
+    final futurePlatforms = find.text('Other and future platforms');
+    await tester.scrollUntilVisible(
+      futurePlatforms,
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(futurePlatforms, findsOneWidget);
   });
 }
