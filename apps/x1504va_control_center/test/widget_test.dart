@@ -34,8 +34,24 @@ void main() {
     await tester.tap(find.byIcon(Icons.devices_other).first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Windows'), findsWidgets);
-    expect(find.text('Linux'), findsWidgets);
+    expect(find.text('Platforms'), findsWidgets);
+
+    final linux = find.text('Linux');
+    await tester.scrollUntilVisible(
+      linux,
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(linux, findsWidgets);
+
+    final windows = find.text('Windows');
+    await tester.scrollUntilVisible(
+      windows,
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(windows, findsWidgets);
+
     final futurePlatforms = find.text('Other and future platforms');
     await tester.scrollUntilVisible(
       futurePlatforms,
@@ -44,6 +60,7 @@ void main() {
     );
     expect(futurePlatforms, findsOneWidget);
   });
+
   testWidgets('quick action buttons navigate to their workspaces', (tester) async {
     await tester.pumpWidget(const ResearchPlatformApp());
 
@@ -77,5 +94,4 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Hardware discovery'), findsOneWidget);
   });
-
 }
