@@ -52,25 +52,38 @@ class _ControlCenterPageState extends State<ControlCenterPage> {
   ];
 
   void _showReadOnlyPlan() {
+    setState(() => _notice = 'Read-only discovery selected · no scan has run');
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Read-only discovery'),
         content: const Text(
-          'This screen is the control-center UI. The live discovery adapter '
-          'is not connected to this Flutter app yet, so no scan has run.\n\n'
+          'The UI action is active, but the live discovery adapter is not '
+          'connected yet. This is a preparation preview; it does not claim '
+          'that a scan has run.\n\n'
           'Planned sequence:\n'
           '1. Identify the current platform and hardware.\n'
           '2. Read available firmware and boot metadata without changing it.\n'
           '3. Record unavailable fields as unknown.\n'
           '4. Save evidence before matching an installer.\n\n'
           'No firmware, EFI/ESP, boot entries, disks, or security settings '
-          'will be changed by this preview.',
+          'will be changed.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Close'),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              setState(() {
+                _selectedIndex = 1;
+                _notice = 'Discovery workspace opened · read-only preview';
+              });
+            },
+            icon: const Icon(Icons.manage_search),
+            label: const Text('Open Discovery'),
           ),
         ],
       ),
@@ -79,11 +92,34 @@ class _ControlCenterPageState extends State<ControlCenterPage> {
 
   void _showActionDetails(String action) {
     setState(() => _notice = '$action selected · runtime connection pending');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(action),
         content: Text(
-          '$action: UI action is ready, but its runtime adapter is not connected yet.',
+          '$action is available as a UI action. The matching runtime provider '
+          'is not connected yet, so no system operation has been executed.\n\n'
+          'Selected platform: $_selectedPlatform\n\n'
+          'Next step: connect and test a read-only provider, then display '
+          'timestamped evidence and explicit UNKNOWN states for unavailable data.',
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Close'),
+          ),
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              setState(() {
+                _selectedIndex = 3;
+                _notice = 'Evidence workspace opened · awaiting real provider data';
+              });
+            },
+            icon: const Icon(Icons.fact_check_outlined),
+            label: const Text('View Evidence'),
+          ),
+        ],
       ),
     );
   }
@@ -197,6 +233,43 @@ class _ControlCenterPageState extends State<ControlCenterPage> {
                       setState(() => _selectedPlatform = value);
                     }
                   },
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                FilledButton.icon(
+                  onPressed: _showReadOnlyPlan,
+                  icon: const Icon(Icons.manage_search),
+                  label: const Text('Read-only Discovery'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _selectedIndex = 3;
+                      _notice = 'Evidence workspace opened · awaiting real provider data';
+                    });
+                  },
+                  icon: const Icon(Icons.fact_check_outlined),
+                  label: const Text('View Evidence'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _selectedIndex = 4;
+                      _notice = 'Installer workspace opened · no download or install started';
+                    });
+                  },
+                  icon: const Icon(Icons.system_update_alt),
+                  label: const Text('Installer Research'),
                 ),
               ],
             ),
