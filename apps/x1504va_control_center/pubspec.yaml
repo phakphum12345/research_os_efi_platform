@@ -1,7 +1,7 @@
 name: x1504va_control_center
-description: Evidence-driven Hackintosh research control center for ASUS Vivobook X1504VA.
+description: Universal, evidence-driven Research OS control center UI.
 publish_to: "none"
-version: 0.1.0+1
+version: 0.2.0+1
 
 environment:
   sdk: ">=3.0.0 <4.0.0"

@@ -1,20 +1,45 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:x1504va_control_center/main.dart';
 
 void main() {
-  testWidgets('renders research control center', (tester) async {
-    await tester.pumpWidget(const X1504VAApp());
+  testWidgets('renders universal control center without a fixed device profile',
+      (tester) async {
+    await tester.pumpWidget(const ResearchPlatformApp());
 
-    expect(find.text('X1504VA Research Control Center'), findsOneWidget);
-    expect(find.text('Research OS Bridge'), findsOneWidget);
-    expect(find.text('Authority Boundary'), findsOneWidget);
+    expect(find.text('Research OS Control Center'), findsOneWidget);
+    expect(find.text('Target environment'), findsOneWidget);
+    expect(find.text('Read-only by default'), findsOneWidget);
+    expect(find.text('ASUS Vivobook X1504VA'), findsNothing);
+  });
 
+  testWidgets('discovery action clearly reports that live runtime is not connected',
+      (tester) async {
+    await tester.pumpWidget(const ResearchPlatformApp());
+
+    await tester.tap(find.text('Read-only discovery'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Read-only discovery'), findsWidgets);
+    expect(find.textContaining('live discovery adapter is not connected'),
+        findsOneWidget);
+  });
+
+  testWidgets('platform navigation shows platform registry information',
+      (tester) async {
+    await tester.pumpWidget(const ResearchPlatformApp());
+
+    await tester.tap(find.text('Platforms').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Windows'), findsWidgets);
+    expect(find.text('Linux'), findsWidgets);
+    final futurePlatforms = find.text('Other and future platforms');
     await tester.scrollUntilVisible(
-      find.text('Storage · VMD 09AB/A77F'),
-      300,
-      scrollable: find.byType(Scrollable).last,
+      futurePlatforms,
+      250,
+      scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('Storage · VMD 09AB/A77F'), findsOneWidget);
+    expect(futurePlatforms, findsOneWidget);
   });
 }
