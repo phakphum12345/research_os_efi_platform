@@ -17,7 +17,9 @@ void main() {
       (tester) async {
     await tester.pumpWidget(const ResearchPlatformApp());
 
-    await tester.tap(find.text('Read-only discovery'));
+    await tester.ensureVisible(find.text('Read-only Discovery'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Read-only Discovery'));
     await tester.pumpAndSettle();
 
     expect(find.text('Read-only discovery'), findsWidgets);
@@ -29,11 +31,27 @@ void main() {
       (tester) async {
     await tester.pumpWidget(const ResearchPlatformApp());
 
-    await tester.tap(find.text('Platforms').first);
+    await tester.tap(find.byIcon(Icons.devices_other).first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Windows'), findsWidgets);
-    expect(find.text('Linux'), findsWidgets);
+    expect(find.text('Platforms'), findsWidgets);
+
+    final linux = find.text('Linux');
+    await tester.scrollUntilVisible(
+      linux,
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(linux, findsWidgets);
+
+    final windows = find.text('Windows');
+    await tester.scrollUntilVisible(
+      windows,
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(windows, findsWidgets);
+
     final futurePlatforms = find.text('Other and future platforms');
     await tester.scrollUntilVisible(
       futurePlatforms,
@@ -41,5 +59,39 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(futurePlatforms, findsOneWidget);
+  });
+
+  testWidgets('quick action buttons navigate to their workspaces', (tester) async {
+    await tester.pumpWidget(const ResearchPlatformApp());
+
+    expect(find.text('Read-only Discovery'), findsOneWidget);
+    expect(find.text('View Evidence'), findsOneWidget);
+    expect(find.text('Installer Research'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('View Evidence'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('View Evidence'));
+    await tester.pumpAndSettle();
+    expect(find.text('Evidence manifest'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Installer Research'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Installer Research'));
+    await tester.pumpAndSettle();
+    expect(find.text('Search compatible installers'), findsOneWidget);
+  });
+
+  testWidgets('discovery preview exposes an action to open Discovery', (tester) async {
+    await tester.pumpWidget(const ResearchPlatformApp());
+
+    await tester.ensureVisible(find.text('Read-only Discovery'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Read-only Discovery'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Open Discovery'), findsOneWidget);
+    await tester.tap(find.text('Open Discovery'));
+    await tester.pumpAndSettle();
+    expect(find.text('Hardware discovery'), findsOneWidget);
   });
 }
