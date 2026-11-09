@@ -126,7 +126,7 @@ def main():
         result = collect_live_discovery(a.platform)
         write_live_discovery(result, a.output)
         print(json.dumps(result, indent=2, ensure_ascii=False))
-        return 0 if result["overall_status"] == "DETECTED" else 0
+        return 0 if result["overall_status"] == "DETECTED" else 1
     elif a.command == "discover-product":
         target = normalize_platform(a.platform or host_platform())
         result = discover_product(
