@@ -44,6 +44,25 @@ Required design/build stages:
 
 ## C — Multi-Boot USB
 
+### Implemented safe staging foundation (not a bootable release)
+
+The isolated branch now contains `backend/platform/multiboot.py`, a CLI entry point, and unit tests for a non-destructive staging-directory composer. It:
+
+- accepts an already-built x86_64 GRUB UEFI PE/COFF binary, an OpenCore EFI tree, a Research OS ISO-9660 image, and a Research OS-provided GRUB menu fragment;
+- builds a new staging directory only and refuses to overwrite an existing output directory;
+- places GRUB at the removable-media UEFI path, preserves OpenCore under `EFI/OC`, places the Research OS ISO under `images/`, and combines the menu entries;
+- creates and verifies a SHA-256 inventory, rejecting symlinks, missing/extra files, size changes, and hash mismatches.
+
+CLI:
+
+```powershell
+python -m backend.platform.cli multiboot-stage --opencore-efi-root .\\input\\EFI --research-os-iso .\\input\\research-os.iso --grub-efi-binary .\\input\\grubx64.efi --research-os-grub-entry .\\input\\research-os.cfg --output .\\out\\multiboot
+python -m backend.platform.cli verify-multiboot .\\out\\multiboot
+```
+
+This is only a package-staging and integrity foundation. It does not create GRUB, create the Research OS ISO, prove that the supplied Research OS GRUB fragment can boot its ISO, perform a QEMU boot, or write to physical USB media. The supplied GRUB binary and OS menu fragment remain trusted build inputs and require independent provenance/signature review. Unit fixtures are structural tests, not boot evidence.
+
+
 Create a separate, non-destructive layout specification and builder after A and B have independent artifacts. The menu must contain distinct entries for OpenCore and Research OS, with explicit labels and independent paths. Validate paths, hashes, file sizes, filesystem limits, and boot configuration. Prefer a data-preserving file-copy workflow where the chosen USB filesystem and firmware support it; document any limitation that would require repartitioning.
 
 Do not write to a physical USB device, repartition/format media, alter the internal EFI System Partition, change BIOS/Secure Boot/VMD settings, or install a bootloader without a separate, explicit approval naming the target device and operation.
