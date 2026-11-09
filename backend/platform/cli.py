@@ -27,6 +27,7 @@ from .universal.runtime.engine import RuntimeEngine
 from .universal.runtime.evidence import write_session_evidence
 from .installer_integrity import verify_installer_artifact
 from .live_discovery import collect_live_discovery, write_live_discovery
+from .multiboot import build_multiboot_staging, verify_multiboot_staging
 
 
 def main():
@@ -95,6 +96,14 @@ def main():
     x.add_argument("--sha256", required=True, help="Expected SHA-256 from an independent trusted source")
     x.add_argument("--source-url", required=True, help="HTTPS source URL used to obtain the artifact")
     x.add_argument("--expected-size", type=int, default=None)
+    x = s.add_parser("multiboot-stage")
+    x.add_argument("--opencore-efi-root", required=True)
+    x.add_argument("--research-os-iso", required=True)
+    x.add_argument("--grub-efi-binary", required=True)
+    x.add_argument("--research-os-grub-entry", required=True)
+    x.add_argument("--output", required=True, help="New staging directory; must not already exist")
+    x = s.add_parser("verify-multiboot")
+    x.add_argument("staging_dir")
     x = s.add_parser("plan")
     x.add_argument("profile")
     x.add_argument("--source-sha", required=True)
@@ -207,6 +216,19 @@ def main():
             source_url=a.source_url,
             expected_size=a.expected_size,
         )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0 if result["status"] == "PASS" else 1
+    elif a.command == "multiboot-stage":
+        result = build_multiboot_staging(
+            a.opencore_efi_root,
+            a.research_os_iso,
+            a.grub_efi_binary,
+            a.research_os_grub_entry,
+            a.output,
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+    elif a.command == "verify-multiboot":
+        result = verify_multiboot_staging(a.staging_dir)
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return 0 if result["status"] == "PASS" else 1
     elif a.command == "pipeline":
